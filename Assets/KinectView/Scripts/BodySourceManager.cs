@@ -23,7 +23,7 @@ public class BodySourceManager : MonoBehaviour
         return _Data;
     }
     
-    static string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview"+ ReturnTimeStamp() +".json";  
+    public string _Path = null;  
     static List<Body> trackedBodies = new List<Body>();
     public System.IO.FileStream _File;
     public StreamWriter _file;
@@ -112,25 +112,53 @@ public class BodySourceManager : MonoBehaviour
             jarray = JArray.Parse(kinectBodyDataString);
             foreach (JObject content in jarray.Children<JObject>())
             {
-                removeFields(content, new string[] { "Lean" });
+                removeFields(content, new string[] { "JointOrientations" });
             } 
         }
 
-        using (FileStream fs = File.Open(_Path, FileMode.Append))
+        using (FileStream fs = File.Open(ReturnPath(), FileMode.Append))
         using (StreamWriter sw = new StreamWriter(fs))
         using (JsonWriter jw = new JsonTextWriter(sw))
         {
-          jw.Formatting = Formatting.Indented;
-         
-          JsonSerializer serializer = new JsonSerializer();
-          serializer.Serialize(jw, jarray);
+            // TODO: seperate file for future.
+            Debug.Log(sw);
+
+            jw.Formatting = Formatting.Indented;
+
+            JsonSerializer serializer = new JsonSerializer();
+
+            Dictionary<uint, JArray> ret = new Dictionary<uint, JArray>();
+            ret.Add(ReturnTimeStamp(0), jarray);
+            serializer.Serialize(jw, ret);
         }
     }
 
-    static uint ReturnTimeStamp()
-    {
-        return (uint)(System.DateTime.UtcNow.Subtract(new System.DateTime(1970, 1, 1))).TotalSeconds;
+    // check: ここをうまく使えば時間ごとにjsonを切り出せる
+    /*
+    // state: 0 => millisec, 1 => sec, 2, => min
+    */
+    static uint ReturnTimeStamp(int state)
+    {   
+        uint retInt = 0;
+        switch (state) 
+        {
+            case 0:
+                retInt = (uint)(System.DateTime.UtcNow.Subtract(new System.DateTime(1970, 1, 1))).TotalMilliseconds;
+            break;
+            case 1:
+                retInt = (uint)(System.DateTime.UtcNow.Subtract(new System.DateTime(1970, 1, 1))).TotalSeconds;
+            break;
+            case 2:
+                retInt = (uint)(System.DateTime.UtcNow.Subtract(new System.DateTime(1970, 1, 1))).TotalMinutes;
+            break;
+        }
+        return retInt;
     } 
+
+    static string ReturnPath()
+    {
+        return  System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview"+ ReturnTimeStamp(2) +".json" ;
+    }
 
     /// util ///
     private void removeFields(JToken token, string[] fields)
