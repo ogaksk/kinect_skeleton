@@ -18,11 +18,11 @@ public class EmitBody
     public PointF Lean { get; set; }
     public bool IsTracked { get; set; }
     public ulong TrackingId { get;  set; }
-    public Dictionary<JointType, Windows.Kinect.Joint> Joints { get; set; }
-
+    public Dictionary<JointType, Windows.Kinect.Joint> Joints { get; set; } // toggle under line. 
+    // public Dictionary<EJointType, EJoint> Joints { get; set; }
 }
 
- public enum DJointType 
+ public enum EJointType 
  {
     SpineBase = 0,
     SpineMid,
@@ -51,13 +51,26 @@ public class EmitBody
     ThumbRight
 }
 
-public struct DJoint 
+public enum ETrackingState
 {
-    public DJointType JointType { get; set; }
-    public Vector3 Position { get; set; }
-    public Vector3 TrackingState { get; set; }
+    Inferred = 0,
+    NotTracked,
+    Tracked
 }
 
+public struct EJoint 
+{
+    public EJointType JointType { get; set; }
+    public EPosition Position { get; set; }
+    public ETrackingState TrackingState { get; set; }
+}
+
+public struct EPosition
+{
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Z { get; set; }
+}
 
 public class BodySourcePlayer : MonoBehaviour 
 {
@@ -101,8 +114,7 @@ public class BodySourcePlayer : MonoBehaviour
             string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview.json");
         //    _testbody = new Body[1];
 
-            _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
-            // _bodies = JsonConvert.DeserializeObject<Body[]>(json);
+             _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
            // var _testbody1 = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_Path));
             Debug.Log(_eBodies[0].Joints[0].Position.X);
         }   
