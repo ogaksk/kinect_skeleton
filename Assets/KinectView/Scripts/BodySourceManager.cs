@@ -48,7 +48,6 @@ public class BodySourceManager : MonoBehaviour
         if (_Reader != null)
         {
             var frame = _Reader.AcquireLatestFrame();
-            
             if (frame != null)
             {
                 if (_Data == null)
@@ -58,7 +57,6 @@ public class BodySourceManager : MonoBehaviour
                 
                 frame.GetAndRefreshBodyData(_Data);
                 SaveJsonData();
-                
                 frame.Dispose();
                 frame = null;
             }
@@ -105,14 +103,20 @@ public class BodySourceManager : MonoBehaviour
 
         string kinectBodyDataString = null;
         JArray jarray = null;
-        trackedBodies = _Data.Where(b => b.IsTracked == true).ToList();
+        if (_Data != null) {
+            trackedBodies = _Data.Where(b => b.IsTracked == true).ToList();
+        }
         
         if (trackedBodies.Count() > 0) {
             kinectBodyDataString = JsonConvert.SerializeObject(trackedBodies);
             jarray = JArray.Parse(kinectBodyDataString);
             foreach (JObject content in jarray.Children<JObject>())
             {
-                removeFields(content, new string[] { "JointOrientations" });
+                removeFields(content, new string[] { 
+                    "JointOrientations", "Lean", "Activities", "ClippedEdges",
+                    "Appearance", "Engaged", "Expressions", "HandLeftConfidence", 
+                    "HandLeftState", "HandRightConfidence", "HandRightState"
+                });
             } 
         }
 
@@ -131,9 +135,11 @@ public class BodySourceManager : MonoBehaviour
             ret.Add(ReturnTimeStamp(0), jarray);
             serializer.Serialize(jw, ret);
         }
+        float fps = 1f / Time.deltaTime;
+        Debug.LogFormat("{0}fps", fps);
     }
 
-    // check: ここをうまく使えば時間ごとにjsonを切り出せる
+    // check: ここをうまく使えば時間ごとにjsonを切り出せる => ダメ
     /*
     // state: 0 => millisec, 1 => sec, 2, => min
     */
