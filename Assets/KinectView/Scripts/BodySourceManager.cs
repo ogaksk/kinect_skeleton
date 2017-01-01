@@ -139,19 +139,14 @@ public class BodySourceManager : MonoBehaviour
             jw.Formatting = Formatting.Indented;
 
             JsonSerializer serializer = new JsonSerializer();
-           //  var timeStamp = new { timestamp = ReturnTimeStamp(0) };
-           
-           /*
-            Bodies _bodies = new Bodies();
-            _bodies.data = jarray;
-            Timestamp _timestamp =  new Timestamp();
-            _timestamp.data = ReturnTimeStamp(0);
-            JObject ret =  new JObject();
-            */
+//            var timeStamp = new { timestamp = ReturnTimeStamp(0) };
 
-            JObject ret =  new JObject();
-            ret.Add("bodies", jarray);
-            ret.Add("timestamp", ReturnTimeStamp(0));
+            JObject datas =  new JObject();
+            JArray ret =  new JArray();
+            ret.Add(ReturnTimeStamp(0));
+            ret.Add(jarray);
+//            ret.Add("frames", datas);
+
             serializer.Serialize(jw, ret);
         }
         float fps = 1f / Time.deltaTime;
