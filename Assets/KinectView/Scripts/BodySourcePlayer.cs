@@ -6,6 +6,7 @@ using System.Reflection;
 using Windows.Kinect;
 using Newtonsoft.Json;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 public class UserModel
 {
@@ -72,6 +73,13 @@ public struct EPosition
     public double Z { get; set; }
 }
 
+public class JsonFrame 
+{
+    public uint timestamp { get; }
+    public JObject bodies { get; }
+}
+
+
 public class BodySourcePlayer : MonoBehaviour 
 {
     private KinectSensor _Sensor;
@@ -95,28 +103,22 @@ public class BodySourcePlayer : MonoBehaviour
     { 
         return _EData;
     }
+    public JsonFrame[] _jsonFrame; 
 
 
     void Start () 
     {
-        /*
-        var data = new UserModel();
-        data.UserID = 100;
-        data.Username = "太郎";
-
-        string json = Newtonsoft.Json.JsonConvert.SerializeObject(data);
-        UserModel model1 = JsonConvert.DeserializeObject<UserModel>(json);
-        Debug.Log(JsonConvert.DeserializeObject<UserModel>(json));
-        */
 
         if (_bodies == null)
         {
             string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview.json");
-        //    _testbody = new Body[1];
+            _jsonFrame = JsonConvert.DeserializeObject<JsonFrame[]>(json);
 
-             _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
+            // _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
+            // _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
+
            // var _testbody1 = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_Path));
-            Debug.Log(_eBodies[0].Joints[0].Position.X);
+            Debug.Log( _jsonFrame );
         }   
     }
     

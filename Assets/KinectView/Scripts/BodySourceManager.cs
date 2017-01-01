@@ -7,6 +7,15 @@ using Newtonsoft.Json;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
+/*
+public class Bodies {
+    public JArray data;
+}
+
+public class Timestamp {
+    public uint data;
+}
+*/
 
 public class BodySourceManager : MonoBehaviour 
 {
@@ -23,7 +32,7 @@ public class BodySourceManager : MonoBehaviour
         return _Data;
     }
     
-    public string _Path = null;  
+    static string _Path = ReturnPath();  
     static List<Body> trackedBodies = new List<Body>();
     public System.IO.FileStream _File;
     public StreamWriter _file;
@@ -120,7 +129,7 @@ public class BodySourceManager : MonoBehaviour
             } 
         }
 
-        using (FileStream fs = File.Open(ReturnPath(), FileMode.Append))
+        using (FileStream fs = File.Open(_Path, FileMode.Append))
         using (StreamWriter sw = new StreamWriter(fs))
         using (JsonWriter jw = new JsonTextWriter(sw))
         {
@@ -130,9 +139,19 @@ public class BodySourceManager : MonoBehaviour
             jw.Formatting = Formatting.Indented;
 
             JsonSerializer serializer = new JsonSerializer();
+           //  var timeStamp = new { timestamp = ReturnTimeStamp(0) };
+           
+           /*
+            Bodies _bodies = new Bodies();
+            _bodies.data = jarray;
+            Timestamp _timestamp =  new Timestamp();
+            _timestamp.data = ReturnTimeStamp(0);
+            JObject ret =  new JObject();
+            */
 
-            Dictionary<uint, JArray> ret = new Dictionary<uint, JArray>();
-            ret.Add(ReturnTimeStamp(0), jarray);
+            JObject ret =  new JObject();
+            ret.Add("bodies", jarray);
+            ret.Add("timestamp", ReturnTimeStamp(0));
             serializer.Serialize(jw, ret);
         }
         float fps = 1f / Time.deltaTime;
