@@ -75,8 +75,9 @@ public struct EPosition
 
 public class JsonFrame 
 {
-    public uint timestamp { get; }
-    public JObject bodies { get; }
+    public uint timestamp { get; set; }
+    public JArray bodies { get; set; }
+
 }
 
 
@@ -103,7 +104,8 @@ public class BodySourcePlayer : MonoBehaviour
     { 
         return _EData;
     }
-    public JsonFrame[] _jsonFrame; 
+    public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
+
 
 
     void Start () 
@@ -111,23 +113,40 @@ public class BodySourcePlayer : MonoBehaviour
 
         if (_bodies == null)
         {
-            string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview.json");
-            _jsonFrame = JsonConvert.DeserializeObject<JsonFrame[]>(json);
+            string json = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "//SerializationOverview24721533.json");
+            JArray[] fetchedData = JsonConvert.DeserializeObject<JArray[]>(json);
 
             // _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
             // _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(json);
 
            // var _testbody1 = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(_Path));
-            Debug.Log( _jsonFrame );
+
+           /*
+           PropertyInfo[] infoArray = _jsonFrame[0].GetType().GetProperties();
+            foreach (PropertyInfo info in infoArray)
+            {
+                Debug.Log(info.Name + ": " + info.GetValue(_jsonFrame[0],null));
+            }
+            */
+            foreach (var data in fetchedData.Select((v, i) => new { v, i })) 
+            {
+                JsonFrame jsf = new JsonFrame();
+                Debug.Log(data.v[0]);
+                jsf.timestamp = (uint)data.v[0];
+                jsf.bodies =  (Newtonsoft.Json.Linq.JArray)data.v[1];
+                _jsonDatas.Insert(data.i, jsf);
+            }
         }   
     }
     
     void Update () 
     {
 
-        if (_eBodies != null)
+        if (_jsonDatas != null)
         {
             _EData = _eBodies;
+            Debug.Log( _jsonDatas[0].timestamp);
+           
             /*
             PropertyInfo[] infoArray = _testbody.GetType().GetProperties();
             foreach (PropertyInfo info in infoArray)
