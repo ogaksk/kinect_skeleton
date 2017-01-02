@@ -15,7 +15,9 @@ public class BodySourcePlayerView : MonoBehaviour
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourcePlayer _BodyManager;
 
-    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationConfirm.json";  
+    public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationConfirm.json";
+
+    public Vector3 startPosition;
     
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -67,8 +69,9 @@ public class BodySourcePlayerView : MonoBehaviour
             return;
         }
 
-        
         List<ulong> trackedIds = new List<ulong>();
+        startPosition =  transform.position;
+
         foreach(var body in data)
         {
             if (body == null)
@@ -83,7 +86,6 @@ public class BodySourcePlayerView : MonoBehaviour
         }
         
         List<ulong> knownIds = new List<ulong>(_Bodies.Keys);
-        
         // First delete untracked bodies
         foreach(ulong trackingId in knownIds)
         {
@@ -147,13 +149,13 @@ public class BodySourcePlayerView : MonoBehaviour
             }
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint);
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, startPosition);
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-                lr.SetPosition(1, GetVector3FromJoint(targetJoint.Value));
+                lr.SetPosition(1, GetVector3FromJoint(targetJoint.Value, startPosition));
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
@@ -178,8 +180,12 @@ public class BodySourcePlayerView : MonoBehaviour
         }
     }
     
-    private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
+    private static Vector3 GetVector3FromJoint(Kinect.Joint joint,  Vector3 startPosition)
     {
-        return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
+        return new Vector3(
+            (joint.Position.X * 10) + startPosition.x, 
+            (joint.Position.Y * 10) + startPosition.y, 
+            (joint.Position.Z * 10) + startPosition.z
+        );
     }
 }
