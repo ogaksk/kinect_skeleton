@@ -9,7 +9,6 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using System.Threading;
 
-
 public class UserModel
 {
     public int UserID { get; set; }
@@ -150,7 +149,7 @@ public class BodySourcePlayer : MonoBehaviour
                 _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_jsonDatas[_FrameCount].bodies);
                 _EData = _eBodies;
 
-                Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
+                //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                
                 uint _time = 0;
                 _time = _FrameCount != 0 ? 
@@ -164,27 +163,6 @@ public class BodySourcePlayer : MonoBehaviour
                 _FrameCount = 0;
             }
         }   
-        /*
-        if (_Reader != null)
-        {
-            var frame = _Reader.AcquireLatestFrame();
-            
-            if (frame != null)
-            {
-                if (_Data == null)
-                {
-                    _Data = new Body[_Sensor.BodyFrameSource.BodyCount];
-                }
-                
-                frame.GetAndRefreshBodyData(_Data);
-                
-                SaveJsonData();
-                
-                frame.Dispose();
-                frame = null;
-            }
-        }  
-        */  
     }
     
     void OnApplicationQuit()

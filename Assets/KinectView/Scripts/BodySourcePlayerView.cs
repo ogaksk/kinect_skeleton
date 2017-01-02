@@ -17,7 +17,9 @@ public class BodySourcePlayerView : MonoBehaviour
 
     public string _Path =  System.IO.Directory.GetCurrentDirectory() + "//SerializationConfirm.json";
 
-    public Vector3 startPosition;
+    public int RotationCoef = 0;
+    private Vector3 RotationPivot = new Vector3(0, 1, 0);
+    private Vector3 groundPosition;
     
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -70,7 +72,7 @@ public class BodySourcePlayerView : MonoBehaviour
         }
 
         List<ulong> trackedIds = new List<ulong>();
-        startPosition =  transform.position;
+        groundPosition =  transform.position;
 
         foreach(var body in data)
         {
@@ -109,7 +111,6 @@ public class BodySourcePlayerView : MonoBehaviour
                 {
                     _Bodies[body.TrackingId] = CreateBodyObject(body.TrackingId);
                 }
-                
                 RefreshBodyObject(body, _Bodies[body.TrackingId]);
             }
         }
@@ -149,13 +150,20 @@ public class BodySourcePlayerView : MonoBehaviour
             }
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint, startPosition);
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
+            // jointObj.Rotate(transform.forward , RotationCoef);
+            // jointObj.Translate(Quaternion.AngleAxis( -30, -Vector3.forward ) );
+            // jointObj.rotation = Quaternion.AngleAxis(120, -transform.forward);
+            jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-                lr.SetPosition(1, GetVector3FromJoint(targetJoint.Value, startPosition));
+
+                Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
+
+                lr.SetPosition(1, endpoint);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
@@ -180,12 +188,17 @@ public class BodySourcePlayerView : MonoBehaviour
         }
     }
     
-    private static Vector3 GetVector3FromJoint(Kinect.Joint joint,  Vector3 startPosition)
+    private static Vector3 GetVector3FromJoint(Kinect.Joint joint,  Vector3 groundPosition)
     {
         return new Vector3(
-            (joint.Position.X * 10) + startPosition.x, 
-            (joint.Position.Y * 10) + startPosition.y, 
-            (joint.Position.Z * 10) + startPosition.z
+            (joint.Position.X * 10) + groundPosition.x, 
+            (joint.Position.Y * 10) + groundPosition.y, 
+            (joint.Position.Z * 10) + groundPosition.z
         );
+    }
+    
+    private static Vector3 RotateAroundPoint(Vector3 point, Vector3 pivot, Quaternion angle) 
+    {
+     return angle * ( point - pivot) + pivot;
     }
 }
