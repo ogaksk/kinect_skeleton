@@ -7,6 +7,8 @@ using Windows.Kinect;
 using Newtonsoft.Json;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using System.Threading;
+
 
 public class UserModel
 {
@@ -76,7 +78,7 @@ public struct EPosition
 public class JsonFrame 
 {
     public uint timestamp { get; set; }
-    public JArray bodies { get; set; }
+    public string bodies { get; set; }
 
 }
 
@@ -86,7 +88,7 @@ public class BodySourcePlayer : MonoBehaviour
     private KinectSensor _Sensor;
     private BodyFrameReader _Reader;
     private Body[] _Data = null;
-    private int counter = 0;
+    private int _FrameCount = 0;
 
     public System.IO.FileStream _File;
 
@@ -131,9 +133,8 @@ public class BodySourcePlayer : MonoBehaviour
             foreach (var data in fetchedData.Select((v, i) => new { v, i })) 
             {
                 JsonFrame jsf = new JsonFrame();
-                Debug.Log(data.v[0]);
                 jsf.timestamp = (uint)data.v[0];
-                jsf.bodies =  (Newtonsoft.Json.Linq.JArray)data.v[1];
+                jsf.bodies =  Newtonsoft.Json.JsonConvert.SerializeObject(data.v[1]);
                 _jsonDatas.Insert(data.i, jsf);
             }
         }   
@@ -144,18 +145,24 @@ public class BodySourcePlayer : MonoBehaviour
 
         if (_jsonDatas != null)
         {
-            _EData = _eBodies;
-            Debug.Log( _jsonDatas[0].timestamp);
-           
-            /*
-            PropertyInfo[] infoArray = _testbody.GetType().GetProperties();
-            foreach (PropertyInfo info in infoArray)
+            if (_FrameCount < _jsonDatas.Count)
             {
-                Debug.Log(info.Name + ": " + info.GetValue(_testbody,null));
-            }
-            */
+                _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_jsonDatas[_FrameCount].bodies);
+                _EData = _eBodies;
 
-            // Debug.Log(_testbody[0].Lean.X);
+                Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
+               
+                uint _time = 0;
+                _time = _FrameCount != 0 ? 
+                _jsonDatas[_FrameCount].timestamp - _jsonDatas[_FrameCount - 1].timestamp :
+                _jsonDatas[_FrameCount].timestamp - _jsonDatas[0].timestamp;
+                System.Threading.Thread.Sleep(System.TimeSpan.FromMilliseconds(_time));
+                _FrameCount += 1;
+            }    
+            else 
+            {
+                _FrameCount = 0;
+            }
         }   
         /*
         if (_Reader != null)
