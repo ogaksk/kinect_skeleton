@@ -151,9 +151,6 @@ public class BodySourcePlayerView : MonoBehaviour
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
             jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
-            // jointObj.Rotate(transform.forward , RotationCoef);
-            // jointObj.Translate(Quaternion.AngleAxis( -30, -Vector3.forward ) );
-            // jointObj.rotation = Quaternion.AngleAxis(120, -transform.forward);
             jointObj.RotateAround(RotationPivot, transform.up, RotationCoef);
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
@@ -162,7 +159,6 @@ public class BodySourcePlayerView : MonoBehaviour
                 lr.SetPosition(0, jointObj.localPosition);
 
                 Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), RotationPivot, Quaternion.Euler(0, RotationCoef, 0));
-
                 lr.SetPosition(1, endpoint);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
