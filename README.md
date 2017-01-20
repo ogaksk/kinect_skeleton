@@ -1,0 +1,3 @@
+# kinect_skeleton
+
+kinectのスケルトンデータをjson形式で保存するプロトタイプ
