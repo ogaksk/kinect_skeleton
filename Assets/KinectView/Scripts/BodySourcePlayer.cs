@@ -78,6 +78,7 @@ public class JsonFrame
 {
     public uint timestamp { get; set; }
     public string bodies { get; set; }
+    public Windows.Kinect.Vector4 floorclipplane { get; set; }
 
 }
 
@@ -104,6 +105,12 @@ public class BodySourcePlayer : MonoBehaviour
     public EmitBody[] EGetData()  
     { 
         return _EData;
+    }
+
+    public Windows.Kinect.Vector4 FloorPlane
+    {
+        get;
+        set;
     }
     public List<JsonFrame> _jsonDatas = new List<JsonFrame>();
 
@@ -148,7 +155,7 @@ public class BodySourcePlayer : MonoBehaviour
             {
                 _eBodies = JsonConvert.DeserializeObject<EmitBody[]>(_jsonDatas[_FrameCount].bodies);
                 _EData = _eBodies;
-
+                FloorPlane = _jsonDatas[_FrameCount].floorclipplane;
                 //Debug.Log( _jsonDatas[_FrameCount].timestamp); // アクセスできた
                
                 uint _time = 0;

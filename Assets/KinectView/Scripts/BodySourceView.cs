@@ -10,6 +10,11 @@ public class BodySourceView : MonoBehaviour
     
     private Dictionary<ulong, GameObject> _Bodies = new Dictionary<ulong, GameObject>();
     private BodySourceManager _BodyManager;
+    private Vector3 CameraPivot = new Vector3(1, 0, 0);
+
+    private Windows.Kinect.Vector4 _floorData;
+    public double _cameraAngle;
+    private Vector3 groundPosition;
     
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -57,12 +62,16 @@ public class BodySourceView : MonoBehaviour
         }
         
         Kinect.Body[] data = _BodyManager.GetData();
+        _floorData = _BodyManager.FloorClipPlane;
+
         if (data == null)
         {
             return;
         }
         
         List<ulong> trackedIds = new List<ulong>();
+        groundPosition =  transform.position;
+
         foreach(var body in data)
         {
             if (body == null)
@@ -130,6 +139,7 @@ public class BodySourceView : MonoBehaviour
     
     private void RefreshBodyObject(Kinect.Body body, GameObject bodyObject)
     {
+
         for (Kinect.JointType jt = Kinect.JointType.SpineBase; jt <= Kinect.JointType.ThumbRight; jt++)
         {
             Kinect.Joint sourceJoint = body.Joints[jt];
@@ -141,13 +151,16 @@ public class BodySourceView : MonoBehaviour
             }
             
             Transform jointObj = bodyObject.transform.FindChild(jt.ToString());
-            jointObj.localPosition = GetVector3FromJoint(sourceJoint);
+            jointObj.localPosition = GetVector3FromJoint(sourceJoint, groundPosition);
+
+            jointObj.RotateAround(CameraPivot, transform.right, _BodyManager.CameraAngle * -1);
             
             LineRenderer lr = jointObj.GetComponent<LineRenderer>();
             if(targetJoint.HasValue)
             {
                 lr.SetPosition(0, jointObj.localPosition);
-                lr.SetPosition(1, GetVector3FromJoint(targetJoint.Value));
+                Vector3 endpoint = RotateAroundPoint(GetVector3FromJoint(targetJoint.Value, groundPosition), CameraPivot, Quaternion.Euler(_BodyManager.CameraAngle * -1, 0, 0));
+                lr.SetPosition(1, endpoint);
                 lr.SetColors(GetColorForState (sourceJoint.TrackingState), GetColorForState(targetJoint.Value.TrackingState));
             }
             else
@@ -172,8 +185,26 @@ public class BodySourceView : MonoBehaviour
         }
     }
     
-    private static Vector3 GetVector3FromJoint(Kinect.Joint joint)
+    private static Vector3 GetVector3FromJoint(Kinect.Joint joint,  Vector3 groundPosition)
     {
-        return new Vector3(joint.Position.X * 10, joint.Position.Y * 10, joint.Position.Z * 10);
+        return new Vector3(
+            (joint.Position.X * 10) + groundPosition.x, 
+            (joint.Position.Y * 10) + groundPosition.y, 
+            (joint.Position.Z * 10) + groundPosition.z
+        );
     }
+
+    
+    private static Vector3 RotateAroundPoint(Vector3 point, Vector3 pivot, Quaternion angle) 
+    {
+     return angle * ( point - pivot) + pivot;
+    }
+
+
+    private static double getCameraAngle (Windows.Kinect.Vector4 _floor) 
+    {
+        double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
+        return System.Math.Cos(cameraAngleRadians); 
+    }
+
 }

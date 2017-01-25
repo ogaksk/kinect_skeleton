@@ -26,7 +26,6 @@ public class BodySourceManager : MonoBehaviour
     private JsonSerializer serializer = new JsonSerializer();
     private bool saveFlag = false;
 
-
     public Body[] GetData()
     {
         return _Data;
@@ -37,6 +36,19 @@ public class BodySourceManager : MonoBehaviour
     public System.IO.FileStream _File;
     public StreamWriter _file;
     public JsonWriter _jw;
+
+    public Windows.Kinect.Vector4 FloorClipPlane
+    {
+        get;
+        set;
+    }
+
+
+    public float CameraAngle
+    {
+        get;
+        set;
+    }
 
     void Start () 
     {
@@ -65,6 +77,10 @@ public class BodySourceManager : MonoBehaviour
                 }
                 
                 frame.GetAndRefreshBodyData(_Data);
+                FloorClipPlane = frame.FloorClipPlane;
+
+                CameraAngle = getCameraAngle(FloorClipPlane);
+
                 SaveJsonData();
                 frame.Dispose();
                 frame = null;
@@ -135,17 +151,19 @@ public class BodySourceManager : MonoBehaviour
         {
             // TODO: seperate file for future.
             Debug.Log(sw);
-
             jw.Formatting = Formatting.Indented;
-
             JsonSerializer serializer = new JsonSerializer();
-//            var timeStamp = new { timestamp = ReturnTimeStamp(0) };
-
-            JObject datas =  new JObject();
-            JArray ret =  new JArray();
-            ret.Add(ReturnTimeStamp(0));
-            ret.Add(jarray);
-//            ret.Add("frames", datas);
+            // FloorClipPlane = frame.FloorClipPlane;
+            /*
+            JObject timestamp = JObject.FromObject( new { timestamp = ReturnTimeStamp(0) });
+            JObject camera = JObject.FromObject( new { camera = 1 } );
+            JObject datas = JObject.FromObject( new { datas = jarray } );
+            */
+            JObject ret =  new JObject();
+            ret.Add("timestamp", ReturnTimeStamp(0));
+            ret.Add("camera", 1);
+            ret.Add("floorclipplane", JObject.FromObject( new { X = FloorClipPlane.X, Y = FloorClipPlane.Y, Z = FloorClipPlane.Z, W = FloorClipPlane.W }) );
+            ret.Add("data", jarray);
 
             serializer.Serialize(jw, ret);
         }
@@ -201,5 +219,24 @@ public class BodySourceManager : MonoBehaviour
         {
             el.Remove();
         }
+    }
+
+    private static float getCameraAngle (Windows.Kinect.Vector4 _floor) 
+    {
+        double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
+        // return System.Math.Cos(cameraAngleRadians); 
+         return (float)(cameraAngleRadians * 180 / System.Math.PI);
+    }
+
+    void OnGUI () 
+    {
+        // テキストフィールドを表示する
+        GUI.TextField(new Rect(10, 10, 300, 20), CameraAngle.ToString());
+        GUI.TextField(new Rect(10, 40, 300, 50), 
+            "X: "+FloorClipPlane.X.ToString() +
+            "Y: "+FloorClipPlane.Y.ToString() +  
+            "Z: "+FloorClipPlane.Z.ToString() +  
+            "W: "+FloorClipPlane.W.ToString()
+        );
     }
 }

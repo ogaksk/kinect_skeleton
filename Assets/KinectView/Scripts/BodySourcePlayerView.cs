@@ -20,6 +20,9 @@ public class BodySourcePlayerView : MonoBehaviour
     public int RotationCoef = 0;
     private Vector3 RotationPivot = new Vector3(0, 1, 0);
     private Vector3 groundPosition;
+
+    private Windows.Kinect.Vector4 _floorData;
+    public double _cameraAngle;
     
     private Dictionary<Kinect.JointType, Kinect.JointType> _BoneMap = new Dictionary<Kinect.JointType, Kinect.JointType>()
     {
@@ -66,6 +69,8 @@ public class BodySourcePlayerView : MonoBehaviour
         }
         
         EmitBody[] data = _BodyManager.EGetData();
+        _floorData = _BodyManager.FloorPlane;
+
         if (data == null)
         {
             return;
@@ -196,5 +201,29 @@ public class BodySourcePlayerView : MonoBehaviour
     private static Vector3 RotateAroundPoint(Vector3 point, Vector3 pivot, Quaternion angle) 
     {
      return angle * ( point - pivot) + pivot;
+    }
+
+    private static Vector3 GetFloorClipPlane (EJoint jointhead, Windows.Kinect.Vector4 _floor) 
+    {
+        return new Vector3(
+            (float)0,
+            (float)-(_floor.X * jointhead.Position.X + _floor.Z * jointhead.Position.Z + _floor.W) / _floor.Y * 10,
+            (float)0
+        );
+    }
+
+
+    private static double getCameraAngle (Windows.Kinect.Vector4 _floor) 
+    {
+        double cameraAngleRadians = System.Math.Atan(_floor.Z / _floor.Y); 
+        // return System.Math.Cos(cameraAngleRadians); 
+        return cameraAngleRadians * 180 / System.Math.PI;
+    }
+
+    void OnGUI () 
+    {
+        // テキストフィールドを表示する
+        GUI.TextField(new Rect(10, 10, 300, 50), _cameraAngle.ToString());
+        GUI.TextField(new Rect(10, 10, 300, 50), _cameraAngle.ToString());
     }
 }
